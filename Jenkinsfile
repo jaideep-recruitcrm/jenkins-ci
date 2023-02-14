@@ -78,6 +78,6 @@ pipeline {
         //             sh "docker stop laravel8cd"
         //         }
         //     }
-        }
+        // }
     }
 }
