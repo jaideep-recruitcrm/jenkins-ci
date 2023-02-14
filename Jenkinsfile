@@ -70,7 +70,7 @@ pipeline {
         }
         stage("Acceptance test codeception") {
             steps {
-                sh 'sed -r "s/(\b[0-9]{1,3}\\.){3}[0-9]{1,3}\b/dig +short myip.opendns.com @resolver1.opendns.com/" test.yml'
+                sh 'sed -r "s/(\b[0-9]{1,3}\\.){3}[0-9]{1,3}\b/dig +short myip.opendns.com @resolver1.opendns.com/" ./tests/acceptance.suite.yml'
                 sh "./vendor/bin/codecept run"
             }
             post {
