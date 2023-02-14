@@ -70,11 +70,12 @@ pipeline {
         }
         stage("Acceptance test codeception") {
             steps {
+                sh "sudo chown -R ec2-user:ec2-user ./test"
                 sh "./vendor/bin/codecept run"
             }
             post {
                 always {
-                    // sh "docker stop laravel8cd"
+                    sh "docker stop laravel8cd"
                 }
             }
         }
