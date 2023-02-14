@@ -70,7 +70,6 @@ pipeline {
         }
         stage("Acceptance test codeception") {
             steps {
-                sh "sudo chown -R ec2-user:ec2-user ./test"
                 sh "./vendor/bin/codecept run"
             }
             post {
