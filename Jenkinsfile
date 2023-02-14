@@ -4,7 +4,7 @@ pipeline {
         stage("Build") {
             steps {
                 git 'https://github.com/jaideep-recruitcrm/jenkins-ci.git'
-                sh 'composer update --ignore-platform-reqs'
+                sh 'composer install'
                 sh 'cp .env.example .env'
                 sh 'php artisan key:generate'
             }
