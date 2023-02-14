@@ -75,7 +75,6 @@ pipeline {
             post {
                 always {
                     sh "docker stop laravel8cd"
-                    sh "docker rmi jaiideep/laravel8cd"
                 }
             }
         }
