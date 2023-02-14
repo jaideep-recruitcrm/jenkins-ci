@@ -20,6 +20,7 @@ pipeline {
                 sh 'php artisan key:generate'
                 sh 'cp .env .env.testing'
                 sh 'php artisan migrate'
+                sh 'sudo sed -ri "s/(\b[0-9]{1,3}\\.){3}[0-9]{1,3}\b/$(dig +short myip.opendns.com @resolver1.opendns.com)/g" ./tests/acceptance.suite.yml'
             }
         }
         stage("Unit test") {
@@ -70,7 +71,6 @@ pipeline {
         }
         stage("Acceptance test codeception") {
             steps {
-                sh 'sudo sed -ri "s/(\b[0-9]{1,3}\\.){3}[0-9]{1,3}\b/$(dig +short myip.opendns.com @resolver1.opendns.com)/g" ./tests/acceptance.suite.yml'
                 sh "./vendor/bin/codecept run"
             }
             post {
