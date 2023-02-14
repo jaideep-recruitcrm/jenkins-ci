@@ -29,17 +29,17 @@ pipeline {
         }
         stage("Code coverage") {
             steps {
-                sh "vendor/bin/phpunit --coverage-html 'reports/coverage'"
+                sh "./vendor/bin/phpunit --coverage-html 'reports/coverage'"
             }
         }
         stage("Static code analysis larastan") {
             steps {
-                sh "vendor/bin/phpstan analyse --memory-limit=2G"
+                sh "./vendor/bin/phpstan analyse --memory-limit=2G"
             }
         }
         stage("Static code analysis phpcs") {
             steps {
-                sh "vendor/bin/phpcs"
+                sh "./vendor/bin/phpcs"
             }
         }
         stage("Docker build") {
@@ -70,7 +70,7 @@ pipeline {
         }
         stage("Acceptance test codeception") {
             steps {
-                sh "vendor/bin/codecept run"
+                sh "./vendor/bin/codecept run"
             }
             post {
                 always {
