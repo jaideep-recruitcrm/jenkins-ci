@@ -45,22 +45,22 @@ pipeline {
         }
         stage("Docker build") {
             steps {
-                sh "docker build -t jaiideep/laravel8cd ."
+                sh "docker build -t 309853523083.dkr.ecr.ap-south-1.amazonaws.com/jenkins-ci ."
             }
         }
         stage("Docker push") {
             environment {
-                DOCKER_USERNAME = credentials("docker-user")
-                DOCKER_PASSWORD = credentials("docker-password")
+                ECR_USERNAME = credentials("ecr-user")
+                ECR_PASSWORD = credentials("ecr-password")
             }
             steps {
-                sh "docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}"
-                sh "docker push jaiideep/laravel8cd"
+                sh "docker login --username ${ECR_USERNAME} --password ${ECR_PASSWORD} 309853523083.dkr.ecr.ap-south-1.amazonaws.com"
+                sh "docker push 309853523083.dkr.ecr.ap-south-1.amazonaws.com/jenkins-ci"
             }
         }
         stage("Deploy to staging") {
             steps {
-                sh "docker run -d --rm -p 80:80 --name laravel8cd jaiideep/laravel8cd"
+                sh "docker run -d --rm -p 80:80 --name laravel 309853523083.dkr.ecr.ap-south-1.amazonaws.com/jenkins-ci"
             }
         }
         stage("Acceptance test curl") {
@@ -75,7 +75,8 @@ pipeline {
             }
             post {
                 always {
-                    sh "docker stop laravel8cd"
+                    sh "docker stop laravel"
+                    sh "docker system prune -a -f --volumes"
                 }
             }
         }
