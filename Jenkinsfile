@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    environment {
+        AWS_ACCESS_KEY_ID = credentials("aws-access-key-id")
+        AWS_SECRET_ACCESS_KEY = credentials("aws-secret-access-key")
+    }
     stages {
         stage("Build") {
             environment {
@@ -20,7 +24,6 @@ pipeline {
                 sh 'php artisan key:generate'
                 sh 'cp .env .env.testing'
                 sh 'php artisan migrate'
-                sh 'sed -ri "s/(\\b[0-9]{1,3}\\.){3}[0-9]{1,3}\\b/$(dig +short myip.opendns.com @resolver1.opendns.com)/g" ./tests/acceptance.suite.yml'
             }
         }
         stage("Unit test") {
@@ -30,37 +33,40 @@ pipeline {
         }
         stage("Code coverage") {
             steps {
-                sh "./vendor/bin/phpunit --coverage-html 'reports/coverage'"
+                sh "vendor/bin/phpunit --coverage-html 'reports/coverage'"
             }
         }
         stage("Static code analysis larastan") {
             steps {
-                sh "./vendor/bin/phpstan analyse --memory-limit=2G"
+                sh "vendor/bin/phpstan analyse --memory-limit=2G"
             }
         }
         stage("Static code analysis phpcs") {
             steps {
-                sh "./vendor/bin/phpcs"
+                sh "vendor/bin/phpcs"
             }
         }
         stage("Docker build") {
             steps {
-                sh "docker build -t 309853523083.dkr.ecr.ap-south-1.amazonaws.com/jenkins-ci ."
+                sh "docker rmi jaiideep/laravel8cd"
+                sh "docker build -t jaiideep/laravel8cd --no-cache ."
             }
         }
         stage("Docker push") {
             environment {
-                ECR_USERNAME = credentials("ecr-user")
-                ECR_PASSWORD = credentials("ecr-password")
+                DOCKER_USERNAME = credentials("docker-user")
+                DOCKER_PASSWORD = credentials("docker-password")
             }
             steps {
-                sh "docker login --username ${ECR_USERNAME} --password ${ECR_PASSWORD} 309853523083.dkr.ecr.ap-south-1.amazonaws.com"
-                sh "docker push 309853523083.dkr.ecr.ap-south-1.amazonaws.com/jenkins-ci"
+                sh "docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}"
+                sh "docker push jaiideep/laravel8cd"
             }
         }
         stage("Deploy to staging") {
             steps {
-                sh "docker run -d --rm -p 80:80 --name laravel 309853523083.dkr.ecr.ap-south-1.amazonaws.com/jenkins-ci"
+                sh "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
+                sh "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
+                sh "ssh-agent sh -c 'ssh-add /etc/ansible/pem/key.pem && ansible-playbook /etc/ansible/playbook/playbook-staging-run.yml'"
             }
         }
         stage("Acceptance test curl") {
@@ -71,13 +77,31 @@ pipeline {
         }
         stage("Acceptance test codeception") {
             steps {
-                sh "./vendor/bin/codecept run"
+                sh "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
+                sh "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
+                sh "ssh-agent sh -c 'ssh-add /etc/ansible/pem/key.pem && ansible-playbook /etc/ansible/playbook/playbook-staging-acceptance.yml'"
             }
             post {
                 always {
-                    sh "docker stop laravel"
-                    sh "docker system prune -a -f --volumes"
+                    sh "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
+                    sh "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
+                    sh "ssh-agent sh -c 'ssh-add /etc/ansible/pem/key.pem && ansible-playbook /etc/ansible/playbook/playbook-staging-stop.yml'"
                 }
+            }
+        }
+        stage("Release") {
+            steps {
+                sh "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
+                sh "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
+                sh "ssh-agent sh -c 'ssh-add /etc/ansible/pem/key.pem && ansible-playbook /etc/ansible/playbook/playbook-production-run.yml'"
+            }
+        }
+        stage("Smoke test") {
+            steps {
+                sleep 20
+                sh "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}"
+                sh "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
+                sh "ssh-agent sh -c 'ssh-add /etc/ansible/pem/key.pem && ansible-playbook /etc/ansible/playbook/playbook-production-acceptance.yml'"
             }
         }
     }
