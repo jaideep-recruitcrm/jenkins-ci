@@ -48,7 +48,7 @@ pipeline {
         }
         stage("Docker build") {
             steps {
-                sh "docker rmi jaiideep/laravel8cd"
+                sh "docker 2>/dev/null 1>&2 rmi `docker rmi jaiidee/laravel8cd` || true"
                 sh "docker build -t jaiideep/laravel8cd --no-cache ."
             }
         }
