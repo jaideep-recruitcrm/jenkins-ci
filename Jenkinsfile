@@ -48,18 +48,18 @@ pipeline {
         }
         stage("Docker build") {
             steps {
-                sh "docker 2>/dev/null 1>&2 rmi `docker rmi jaiidee/laravel8cd` || true"
-                sh "docker build -t jaiideep/laravel8cd --no-cache ."
+                sh "docker 2>/dev/null 1>&2 rmi `docker rmi 309853523083.dkr.ecr.ap-south-1.amazonaws.com` || true"
+                sh "docker build -t 309853523083.dkr.ecr.ap-south-1.amazonaws.com --no-cache ."
             }
         }
         stage("Docker push") {
             environment {
-                DOCKER_USERNAME = credentials("docker-user")
-                DOCKER_PASSWORD = credentials("docker-password")
+                ECR_USERNAME = credentials("ecr-user")
+                ECR_PASSWORD = credentials("ecr-password")
             }
             steps {
-                sh "docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}"
-                sh "docker push jaiideep/laravel8cd"
+                sh "docker login --username ${ECR_USERNAME} --password ${ECR_PASSWORD}"
+                sh "docker push 309853523083.dkr.ecr.ap-south-1.amazonaws.com"
             }
         }
         stage("Deploy to staging") {
