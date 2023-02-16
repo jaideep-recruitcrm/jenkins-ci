@@ -49,7 +49,7 @@ pipeline {
         stage("Docker build") {
             steps {
                 sh "docker 2>/dev/null 1>&2 rmi `docker rmi 309853523083.dkr.ecr.ap-south-1.amazonaws.com` || true"
-                sh "docker build -t 309853523083.dkr.ecr.ap-south-1.amazonaws.com --no-cache ."
+                sh "docker build -t 309853523083.dkr.ecr.ap-south-1.amazonaws.com/jenkins-ci --no-cache ."
             }
         }
         stage("Docker push") {
