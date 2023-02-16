@@ -58,8 +58,8 @@ pipeline {
                 ECR_PASSWORD = credentials("ecr-password")
             }
             steps {
-                sh "docker login --username ${ECR_USERNAME} --password ${ECR_PASSWORD}"
-                sh "docker push 309853523083.dkr.ecr.ap-south-1.amazonaws.com"
+                sh "cat /tmp/ecr_password.txt | docker login --username ${ECR_USERNAME} --password-stdin 309853523083.dkr.ecr.ap-south-1.amazonaws.com"
+                sh "docker push 309853523083.dkr.ecr.ap-south-1.amazonaws.com/jenkins-ci"
             }
         }
         stage("Deploy to staging") {
